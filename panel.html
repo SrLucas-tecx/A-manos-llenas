@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mi panel — A Manos Llenas</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+
+<div class="panel-shell">
+  <aside class="side">
+    <div class="who" id="who-tipo">Cuenta</div>
+    <div class="who-name" id="who-nombre">—</div>
+    <a class="side-link active" href="#" data-section="tablero">Tablero general</a>
+    <a class="side-link" href="#" data-section="mis-anuncios">Mis anuncios</a>
+    <a class="side-link" href="#" data-section="historial">Historial de donaciones</a>
+  </aside>
+
+  <main class="main">
+    <section class="section-panel" id="sec-tablero">
+      <div class="board-toolbar">
+        <div class="filters">
+          <button class="chip active" data-tipo="todos">Todos</button>
+          <button class="chip" data-tipo="oferta">Ofertas</button>
+          <button class="chip" data-tipo="solicitud">Solicitudes</button>
+        </div>
+        <div class="search-box">
+          <input type="text" id="buscador" placeholder="Buscar por título, ubicación o nombre..." />
+        </div>
+        <button class="btn gold" id="abrir-publicar"><span id="pub-label">Publicar</span></button>
+      </div>
+      <div class="board" id="board"></div>
+    </section>
+
+    <section class="section-panel" id="sec-mis-anuncios" style="display:none;">
+      <div class="section-head">
+        <h2>Mis anuncios</h2>
+      </div>
+      <div class="board" id="board-mios"></div>
+    </section>
+
+    <section class="section-panel" id="sec-historial" style="display:none;">
+      <div class="section-head">
+        <h2>Historial de donaciones</h2>
+      </div>
+      <div id="historial-list"></div>
+    </section>
+  </main>
+</div>
+
+<div class="modal-bg" id="modal-publicar">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 style="margin:0;">Publicar anuncio</h3>
+      <button class="modal-close" id="cerrar-publicar" type="button" aria-label="Cerrar">&times;</button>
+    </div>
+    <form id="form-publicar">
+      <div class="field">
+        <label for="pub-tipo">Tipo de anuncio</label>
+        <select id="pub-tipo" name="tipo">
+          <option value="oferta">Oferta de donación</option>
+          <option value="solicitud">Solicitud</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="pub-titulo">Título</label>
+        <input id="pub-titulo" name="titulo" required placeholder="Ej. Pan de caja excedente de producción" />
+      </div>
+      <div class="field">
+        <label for="pub-uso">Uso recomendado</label>
+        <textarea id="pub-uso" name="uso" required placeholder="¿Para qué se puede usar este recurso?"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="pub-cantidad">Cantidad</label>
+          <input id="pub-cantidad" name="cantidad" type="number" min="1" required />
+        </div>
+        <div class="field">
+          <label for="pub-unidad">Unidad</label>
+          <input id="pub-unidad" name="unidad" required placeholder="kg, piezas, litros..." />
+        </div>
+      </div>
+      <div class="field">
+        <label for="pub-ubicacion">Ubicación</label>
+        <input id="pub-ubicacion" name="ubicacion" required placeholder="Ciudad, estado" />
+      </div>
+      <div class="field">
+        <label for="pub-tiempo">Tiempo estimado de entrega</label>
+        <input id="pub-tiempo" name="tiempoEntrega" required placeholder="Ej. Recolección en 24 horas" />
+      </div>
+      <button class="btn" type="submit" style="width:100%;">Publicar</button>
+    </form>
+  </div>
+</div>
+
+<script type="module" src="js/panel.js"></script>
+</body>
+</html>
