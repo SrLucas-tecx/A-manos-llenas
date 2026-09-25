@@ -1,0 +1,68 @@
+{
+  "name": "a-manos-llenas",
+  "version": "1.0.0",
+  "description": "Página web para conectar organizaciones sociales con empresas",
+  "keywords": [
+    "Página",
+    "web",
+    "MERN"
+  ],
+  "homepage": "https://github.com/SrLucas-tecx/A-manos-llenas#readme",
+  "bugs": {
+    "url": "https://github.com/SrLucas-tecx/A-manos-llenas/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SrLucas-tecx/A-manos-llenas.git"
+  },
+  "license": "ISC",
+  "author": "JDM",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "cross-env NODE_ENV=production node server.js",
+    "dev": "cross-env NODE_ENV=development nodemon server.js",
+    "test": "cross-env NODE_ENV=test jest --runInBand --coverage",
+    "crear-admin": "node scripts/crearAdmin.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.1.5"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "nodemon": "^3.1.11"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": [
+      "./test/setup.js"
+    ],
+    "testTimeout": 30000,
+    "collectCoverageFrom": [
+      "app.js",
+      "controllers/**/*.js",
+      "middleware/**/*.js",
+      "models/**/*.js",
+      "routes/**/*.js",
+      "utils/**/*.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    },
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ]
+  }
+}
