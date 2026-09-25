@@ -1,0 +1,36 @@
+{
+  "name": "a-manos-llenas-client",
+  "version": "1.0.0",
+  "description": "Página web para conectar organizaciones sociales con empresas",
+  "keywords": [
+    "Página",
+    "web",
+    "MERN"
+  ],
+  "homepage": "https://github.com/SrLucas-tecx/A-manos-llenas#readme",
+  "bugs": {
+    "url": "https://github.com/SrLucas-tecx/A-manos-llenas/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SrLucas-tecx/A-manos-llenas.git"
+  },
+  "license": "ISC",
+  "author": "JDM",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.17.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-router-dom": "^7.18.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.1",
+    "vite": "^8.3.1"
+  }
+}
