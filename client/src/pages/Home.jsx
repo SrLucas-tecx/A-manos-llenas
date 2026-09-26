@@ -16,7 +16,7 @@ export default function Home() {
       <section className="hero">
         <div className="wrap hero-grid">
           <div>
-            <h1>El excedente de una empresa es el sustento de una comunidad.</h1>
+            <h1>Una plataforma para conectar empresas donantes y organizaciones sociales.</h1>
             <p className="lede">
               A Manos Llenas conecta a empresas con productos o insumos sobrantes con organizaciones sociales que
               pueden aprovecharlos, con ubicación, tiempos y calidad verificables en cada donación.
