@@ -23,6 +23,7 @@
     "start": "cross-env NODE_ENV=production node server.js",
     "dev": "cross-env NODE_ENV=development nodemon server.js",
     "test": "cross-env NODE_ENV=test jest --runInBand --coverage",
+    "lint": "eslint .",
     "crear-admin": "node scripts/crearAdmin.js"
   },
   "dependencies": {
@@ -34,7 +35,10 @@
     "mongoose": "^9.1.5"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "cross-env": "^10.1.0",
+    "eslint": "^10.11.0",
+    "globals": "^17.12.0",
     "jest": "^30.5.2",
     "nodemon": "^3.1.11",
     "supertest": "^7.3.0"

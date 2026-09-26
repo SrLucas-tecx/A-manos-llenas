@@ -1,0 +1,220 @@
+name: CI/CD - A Manos Llenas
+
+# Se dispara en cada push a main y en cada Pull Request hacia main.
+#   - Pull Request (desde fluffa, frontend, tests...): corre lint, pruebas, build, seguridad y SonarQube.
+#   - Push a main (cuando se acepta un PR): además despliega al entorno de prueba en Render.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: # permite correrlo a mano desde la pestaña Actions
+
+# Si llega un push nuevo a la misma rama, cancela la ejecución anterior
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 22.x
+
+jobs:
+
+  # ────────────────────────────────
+  # 1) LINT — validación de estilo de código (ESLint, backend)
+  # ────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v7
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: src/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar ESLint
+        run: npm run lint
+
+  # ────────────────────────────────
+  # 2) TEST — pruebas unitarias + cobertura (Jest, mínimo 90%)
+  #    No necesitan base de datos: el modelo se simula con mocks.
+  # ────────────────────────────────
+  test:
+    name: Pruebas unitarias
+    needs: lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v7
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: src/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar pruebas con Jest (falla si la cobertura baja de 90%)
+        run: npm test
+
+      - name: Subir reporte de cobertura como artefacto
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: src/coverage/
+          retention-days: 7
+
+  # ────────────────────────────────
+  # 3) BUILD — construcción del frontend (React + Vite)
+  # ────────────────────────────────
+  build:
+    name: Build del frontend
+    needs: lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v7
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar con Vite
+        run: npm run build
+
+      - name: Subir build como artefacto
+        uses: actions/upload-artifact@v7
+        with:
+          name: client-dist
+          path: client/dist/
+          retention-days: 7
+
+  # ────────────────────────────────
+  # 4) SECURITY — auditoría de dependencias vulnerables (backend y frontend)
+  # ────────────────────────────────
+  security:
+    name: Auditoría de seguridad
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        carpeta: [src, client]
+    defaults:
+      run:
+        working-directory: ${{ matrix.carpeta }}
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v7
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: npm audit (dependencias vulnerables)
+        run: npm audit --audit-level=high
+        continue-on-error: true # no bloquea el pipeline, pero deja el reporte visible
+
+  # ────────────────────────────────
+  # 5) SONARQUBE — calidad de código (deuda técnica, code smells, cobertura)
+  #    Configuración en sonar-project.properties (raíz del repo).
+  #    Si todavía no hay SONAR_TOKEN en los secrets, el análisis se salta sin romper el pipeline.
+  # ────────────────────────────────
+  sonarqube:
+    name: Análisis SonarQube
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # SonarQube necesita el historial completo
+
+      - name: Descargar reporte de cobertura
+        uses: actions/download-artifact@v8
+        with:
+          name: coverage-report
+          path: src/coverage/
+
+      - name: Ejecutar análisis de SonarQube
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v8
+
+      - name: Aviso si falta configurar SonarQube
+        if: env.SONAR_TOKEN == ''
+        run: echo "::warning::No hay SONAR_TOKEN en los secrets del repo; se saltó el análisis de SonarQube."
+
+  # ────────────────────────────────
+  # 6) DEPLOY — despliegue automático al entorno de prueba (Render)
+  #    Solo corre si TODO lo anterior pasó, y solo en push a "main".
+  # ────────────────────────────────
+  deploy:
+    name: Despliegue a entorno de prueba
+    needs: [test, build, security, sonarqube]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      STAGING_URL: ${{ secrets.STAGING_URL }}
+    steps:
+      - name: Revisar que los secrets estén configurados
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ] || [ -z "$STAGING_URL" ]; then
+            echo "::error::Faltan los secrets RENDER_DEPLOY_HOOK_URL y/o STAGING_URL en el entorno 'staging'."
+            exit 1
+          fi
+
+      - name: Desplegar a Render (entorno de prueba)
+        run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
+
+      - name: Verificar que el entorno de prueba responde
+        # Render tarda varios minutos en construir (y más si el servicio estaba dormido).
+        # Se revisa cada 20 s hasta 10 min. GET /api/usuarios sin token debe responder 401:
+        # eso confirma que Express, las rutas y el middleware auth están funcionando.
+        run: |
+          for intento in $(seq 1 30); do
+            codigo=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$STAGING_URL/api/usuarios" || true)
+            echo "Intento $intento: HTTP $codigo"
+            if [ "$codigo" = "401" ]; then
+              echo "El entorno de prueba responde correctamente."
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "::error::El entorno de prueba no respondió como se esperaba."
+          exit 1
