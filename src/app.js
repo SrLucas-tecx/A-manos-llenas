@@ -23,7 +23,7 @@ app.use('/api/usuarios', require('./routes/usuarioRoutes'));
 // Sprint 2: app.use('/api/anuncios', require('./routes/anuncioRoutes'));
 
 // Ruta /api que no existe
-app.use('/api', (req, res) => res.status(404).json({ mensaje: 'Ruta no encontrada' }));
+app.use('/api', (req, res) => res.status(404).json({ message: 'Ruta no encontrada' }));
 
 // ---------- Front (solo producción) ----------
 // En desarrollo el front lo sirve Vite en http://localhost:5173
