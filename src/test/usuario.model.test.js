@@ -56,7 +56,7 @@ describe('Modelo Usuario', () => {
   });
 
   test('rechaza un rol que no existe', async () => {
-    expect((await errores({ ...valido, rol: 'hacker' })).rol).toBeDefined();
+    expect((await errores({ ...valido, rol: 'hackerMan' })).rol).toBeDefined();
   });
 
   test('nombre del encargado necesita al menos 10 caracteres', async () => {
