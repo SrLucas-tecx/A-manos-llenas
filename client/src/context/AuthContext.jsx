@@ -3,7 +3,7 @@
 // se actualicen solos al iniciar o cerrar sesión.
 
 import { createContext, useContext, useState } from 'react';
-import { getSession, clearSession } from '../services/data.js';
+import { getSession, cerrarSesion } from '../services/auth.js';
 
 const AuthContext = createContext(null);
 
@@ -12,7 +12,7 @@ export function AuthProvider({ children }) {
 
   const login = (nuevaSesion) => setSessionState(nuevaSesion);
   const logout = () => {
-    clearSession();
+    cerrarSesion();
     setSessionState(null);
   };
 

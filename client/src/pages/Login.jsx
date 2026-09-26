@@ -1,33 +1,32 @@
-// src/pages/Login.jsx  (antes pages/login.html + js/login.js)
+// src/pages/Login.jsx
+// Inicia sesión con el backend (POST /api/auth/login). El rol lo decide el backend, no el formulario.
 
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { iniciarSesionConCredenciales } from '../services/auth.js';
-
-const ROLES = [
-  { valor: 'empresa', texto: 'Empresa' },
-  { valor: 'organizacion', texto: 'Organización' },
-  { valor: 'admin', texto: 'Administración' },
-];
+import { iniciarSesion } from '../services/auth.js';
 
 export default function Login() {
   const { session, login } = useAuth();
   const navigate = useNavigate();
-  const [rol, setRol] = useState('empresa');
   const [error, setError] = useState('');
+  const [cargando, setCargando] = useState(false);
 
   if (session) return <Navigate to={session.tipo === 'admin' ? '/admin' : '/panel'} replace />;
 
-  const enviar = (e) => {
+  const enviar = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
+    setError('');
+    setCargando(true);
     try {
-      const nueva = iniciarSesionConCredenciales(fd.get('email'), fd.get('password'), rol);
+      const nueva = await iniciarSesion(fd.get('email'), fd.get('password'));
       login(nueva);
-      navigate(rol === 'admin' ? '/admin' : '/panel');
+      navigate(nueva.tipo === 'admin' ? '/admin' : '/panel');
     } catch (err) {
       setError(err.message);
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -36,9 +35,6 @@ export default function Login() {
       <div className="wrap form-shell">
         <div className="card">
           <h2>Iniciar sesión</h2>
-
-          {/* Selector de rol: js/login.js lo buscaba pero faltaba en login.html */}
-        
 
           <div className={`form-msg ${error ? 'show error' : ''}`}>{error}</div>
 
@@ -51,8 +47,8 @@ export default function Login() {
               <label htmlFor="password">Contraseña</label>
               <input type="password" id="password" name="password" required placeholder="••••••••" />
             </div>
-            <button className="btn" type="submit" style={{ width: '100%' }}>
-              Entrar
+            <button className="btn" type="submit" style={{ width: '100%' }} disabled={cargando}>
+              {cargando ? 'Entrando…' : 'Entrar'}
             </button>
           </form>
 
