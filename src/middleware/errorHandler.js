@@ -1,4 +1,4 @@
-/* Manejo de errores que no atrapó ningún controlador (último middleware en app.js) */
+/* Manejo de errores que no atrapó ningún controlador (último middleware en server.js) */
 
 // Express reconoce un manejador de errores porque recibe 4 parámetros
 // eslint-disable-next-line no-unused-vars

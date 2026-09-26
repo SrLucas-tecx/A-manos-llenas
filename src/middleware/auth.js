@@ -29,14 +29,4 @@ const auth = (req, res, next) => {
   }
 };
 
-// Restringe una ruta a ciertos roles. Se usa DESPUÉS de auth:
-//   router.post('/', auth, soloRol('administrador'), createUsuario);
-const soloRol = (...roles) => (req, res, next) => {
-  if (!req.user || !roles.includes(req.user.role)) {
-    return res.status(403).json({ message: 'No tienes permiso para realizar esta acción.' });
-  }
-  next();
-};
-
 module.exports = auth;
-module.exports.soloRol = soloRol;

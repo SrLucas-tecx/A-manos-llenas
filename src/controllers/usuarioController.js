@@ -55,7 +55,7 @@ exports.getUsuarios = async (req, res) => {
     } else {
       // Empresas y organizaciones solo ven cuentas activas de empresas/organizaciones
       if (rol === 'administrador') return res.status(403).json({ message: 'No tienes permiso para ver administradores.' });
-      // mongoose.trusted: app.js activa sanitizeFilter y, sin esto, bloquearía nuestros propios $in / $ne
+      // mongoose.trusted: server.js activa sanitizeFilter y, sin esto, bloquearía nuestros propios $in / $ne
       filtro.rol = rol || mongoose.trusted({ $in: ['empresa', 'organizacion'] });
       filtro.activo = mongoose.trusted({ $ne: false });
     }
