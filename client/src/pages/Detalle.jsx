@@ -6,8 +6,6 @@ import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import {
   getAnuncio,
-  getEmpresa,
-  getOrg,
   getDonaciones,
   saveDonacion,
   crearDonacionDesdeAnuncio,
@@ -165,7 +163,7 @@ function FlujoDonacion({ donacion, anuncio, session, onCambio }) {
     return (
       <>
         <p className="lede">
-          Donación en curso entre {getEmpresa(donacion.empresaId)?.nombre} y {getOrg(donacion.orgId)?.nombre}.
+          Donación en curso entre {donacion.empresaNombre} y {donacion.orgNombre}.
         </p>
         {esOrg ? (
           <button className="btn" onClick={marcarRecibido}>Marcar como recibido</button>

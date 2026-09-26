@@ -1,33 +1,50 @@
-// src/pages/Registro.jsx  (antes pages/registro.html + js/registro.js)
+// src/pages/Registro.jsx
+// Crea la cuenta en el backend (POST /api/auth/register) y deja la sesión iniciada.
 
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { registrarEmpresa, registrarOrganizacion } from '../services/auth.js';
+import { registrarCuenta } from '../services/auth.js';
 
 export default function Registro() {
   const { session, login } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState('empresa');
+  const [rol, setRol] = useState('empresa'); // 'empresa' | 'organizacion'
   const [error, setError] = useState('');
+  const [cargando, setCargando] = useState(false);
 
   if (session) return <Navigate to="/panel" replace />;
 
-  const enviar = (accion) => (e) => {
+  const enviar = async (e) => {
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(e.target).entries());
+    const f = Object.fromEntries(new FormData(e.target).entries());
+    setError('');
+    setCargando(true);
     try {
-      login(accion(data));
+      const nueva = await registrarCuenta({
+        nombre_entidad: f.nombre_entidad,
+        nombre_encargado: f.nombre_encargado,
+        email: f.email,
+        password: f.password,
+        rol,
+        direccion: f.direccion || undefined,
+        contacto: f.numero_telefonico ? { numero_telefonico: f.numero_telefonico } : undefined,
+      });
+      login(nueva);
       navigate('/panel');
     } catch (err) {
       setError(err.message);
+    } finally {
+      setCargando(false);
     }
   };
 
-  const cambiarTab = (t) => {
-    setTab(t);
+  const cambiarRol = (r) => {
+    setRol(r);
     setError('');
   };
+
+  const esEmpresa = rol === 'empresa';
 
   return (
     <section>
@@ -35,36 +52,43 @@ export default function Registro() {
         <div className="card">
           <h2>Crea tu cuenta</h2>
           <div className="tabs">
-            <div className={`tab ${tab === 'empresa' ? 'active' : ''}`} onClick={() => cambiarTab('empresa')}>
+            <div className={`tab ${esEmpresa ? 'active' : ''}`} onClick={() => cambiarRol('empresa')}>
               Soy empresa
             </div>
-            <div className={`tab ${tab === 'organizacion' ? 'active' : ''}`} onClick={() => cambiarTab('organizacion')}>
+            <div className={`tab ${!esEmpresa ? 'active' : ''}`} onClick={() => cambiarRol('organizacion')}>
               Soy organización social
             </div>
           </div>
 
           <div className={`form-msg ${error ? 'show error' : ''}`}>{error}</div>
 
-          {tab === 'empresa' ? (
-            <form onSubmit={enviar(registrarEmpresa)}>
-              <Campo id="e-nombre" name="nombre" label="Nombre de la empresa" placeholder="Panificadora Trigo Dorado" />
-              <Campo id="e-email" name="email" type="email" label="Correo" placeholder="contacto@empresa.mx" />
-              <Campo id="e-password" name="password" type="password" label="Contraseña" minLength={4} />
-              <Campo id="e-contacto" name="contacto" label="Teléfono de contacto" placeholder="55 1234 5678" />
-              <Campo id="e-ubicacion" name="ubicacion" label="Ubicación" placeholder="Ciudad, estado" />
-              <button className="btn" type="submit" style={{ width: '100%' }}>Registrar empresa</button>
-            </form>
-          ) : (
-            <form onSubmit={enviar(registrarOrganizacion)}>
-              <Campo id="o-nombre" name="nombre" label="Nombre de la organización" placeholder="Centro de Acopio Pelusas" />
-              <Campo id="o-email" name="email" type="email" label="Correo" placeholder="contacto@organizacion.org" />
-              <Campo id="o-password" name="password" type="password" label="Contraseña" minLength={4} />
-              <Campo id="o-contacto" name="contacto" label="Teléfono de contacto" placeholder="722 111 2233" />
-              <Campo id="o-ubicacion" name="ubicacion" label="Ubicación" placeholder="Ciudad, estado" />
-              <Campo id="o-capacidad" name="capacidad" label="Capacidad de recepción" placeholder="Ej. 200 kg / semana" />
-              <button className="btn" type="submit" style={{ width: '100%' }}>Registrar organización</button>
-            </form>
-          )}
+          <form onSubmit={enviar}>
+            <Campo
+              id="nombre_entidad"
+              label={esEmpresa ? 'Nombre de la empresa' : 'Nombre de la organización'}
+              placeholder={esEmpresa ? 'Panificadora Trigo Dorado' : 'Centro de Acopio Pelusas'}
+            />
+            <Campo id="nombre_encargado" label="Nombre completo del encargado" placeholder="Laura Martínez Ruiz" minLength={10} />
+            <Campo id="email" type="email" label="Correo" placeholder="contacto@ejemplo.mx" />
+            <Campo
+              id="password"
+              type="password"
+              label="Contraseña"
+              minLength={8}
+              ayuda="Mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo."
+            />
+            <Campo
+              id="numero_telefonico"
+              label="Teléfono (10 dígitos)"
+              placeholder="5512345678"
+              pattern="\d{10}"
+              required={false}
+            />
+            <Campo id="direccion" label="Dirección" placeholder="Calle, número, ciudad, estado" minLength={10} required={false} />
+            <button className="btn" type="submit" style={{ width: '100%' }} disabled={cargando}>
+              {cargando ? 'Registrando…' : esEmpresa ? 'Registrar empresa' : 'Registrar organización'}
+            </button>
+          </form>
 
           <p className="helper">
             ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>.
@@ -75,11 +99,12 @@ export default function Registro() {
   );
 }
 
-function Campo({ id, label, type = 'text', ...rest }) {
+function Campo({ id, label, type = 'text', required = true, ayuda, ...rest }) {
   return (
     <div className="field">
       <label htmlFor={id}>{label}</label>
-      <input id={id} type={type} required {...rest} />
+      <input id={id} name={id} type={type} required={required} {...rest} />
+      {ayuda && <small className="helper">{ayuda}</small>}
     </div>
   );
 }

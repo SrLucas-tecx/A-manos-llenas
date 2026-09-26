@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { getAnuncios, getDonaciones, getAnuncio, getEmpresa, getOrg } from '../services/data.js';
+import { getAnuncios, getDonaciones, getAnuncio } from '../services/data.js';
 import AnuncioCard from '../components/AnuncioCard.jsx';
 import PublicarModal from '../components/PublicarModal.jsx';
 
@@ -147,7 +147,7 @@ function Historial({ session }) {
       {donaciones.length ? (
         donaciones.map((d) => {
           const anuncio = getAnuncio(d.anuncioId);
-          const contraparte = session.tipo === 'empresa' ? getOrg(d.orgId)?.nombre : getEmpresa(d.empresaId)?.nombre;
+          const contraparte = session.tipo === 'empresa' ? d.orgNombre : d.empresaNombre;
           return (
             <Link key={d.id} className="anuncio-card" to={`/anuncio/${d.anuncioId}`} style={{ marginBottom: 12 }}>
               <span className="a-kind">{ESTADO_DON[d.estado] || d.estado}</span>
