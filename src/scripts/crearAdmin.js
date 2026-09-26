@@ -38,7 +38,7 @@ async function crearAdmin() {
   try {
     await new Usuario({ password: ADMIN_PASSWORD }).validate(['password']);
   } catch (err) {
-    throw new Error(`ADMIN_PASSWORD no es válida: ${mensajeValidacion(err)}`);
+    throw new Error(`ADMIN_PASSWORD no es válida: ${mensajeValidacion(err)}`, { cause: err });
   }
   const hashed = await bcrypt.hash(ADMIN_PASSWORD, 10);
 
@@ -67,7 +67,7 @@ async function crearAdmin() {
     try {
       await admin.validate();
     } catch (err) {
-      throw new Error(`Datos del admin no válidos: ${mensajeValidacion(err)}`);
+      throw new Error(`Datos del admin no válidos: ${mensajeValidacion(err)}`, { cause: err });
     }
     admin.password = hashed;
     await admin.save({ validateBeforeSave: false });
